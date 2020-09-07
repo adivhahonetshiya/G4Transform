@@ -266,25 +266,83 @@ G4LogicalVolume* DetectorLog = new G4LogicalVolume(DetectorS,
                                                       env_mat, 
                                                    "Tracker");
 
-G4ThreeVector* myVector = new G4ThreeVector(r*std::sin(theta)*std::cos(phi), r*std::sin(theta)*std::sin(phi), r*std::cos(theta)); // its position
-
-   G4RotationMatrix* myRotation = new G4RotationMatrix();
-   myRotation->rotateX(0.*deg);
-   myRotation->rotateY(-180.*deg);
-   myRotation->rotateZ(0.*rad);
-
-
-G4Transform3D Transform = G4Transform3D(myRotation, myVector);
-
-  fAbsorberPV
+    //----------------------------
+    //      Incorrect (using pointers)
+//    G4ThreeVector* myVector = new G4ThreeVector(r*std::sin(theta)*std::cos(phi), r*std::sin(theta)*std::sin(phi), r*std::cos(theta)); // its position
+//    
+//    G4RotationMatrix* myRotation = new G4RotationMatrix();
+//    myRotation->rotateX(0.*deg);
+//    myRotation->rotateY(-180.*deg);
+//    myRotation->rotateZ(0.*rad);
+//    
+//    
+//    G4Transform3D Transform = G4Transform3D(myRotation, myVector);
+//    
+//    fAbsorberPV
+//    = new G4PVPlacement(Transform,   // no rotation
+//                        DetectorLog,       // its logical volume
+//                        "Abso",           // its name
+//                        worldLV,          // its mother  volume
+//                        false,            // no boolean operation
+//                        0,                // copy number
+//                        fCheckOverlaps);  // checking overlaps
+    
+    //----------------------------
+    //      Correct (using pointers)
+    
+//    Let's take a look at the constructor for G4Transform: G4Transform3D(G4RotationMatrix m, G4ThreeVector v)
+//    The first and second arguments are G4RotationMatrix and G4ThreeVector objects, respectively.
+//    Notice that arguments are for the objects, not the pointers (or addresses) to those objects.
+//    Now if you defined your vector and rotation matrix as pointers, then to get the object associated with that pointer, you need to dereference the pointers with the * symbol.
+//    You will notice that here I have dereferenced the myRotation and myVector pointers: G4Transform3D(*myRotation, *myVector)
+//    You can try it and see that it compiles and will run
+    
+    G4ThreeVector* myVector = new G4ThreeVector(r*std::sin(theta)*std::cos(phi), r*std::sin(theta)*std::sin(phi), r*std::cos(theta)); // its position
+    
+    G4RotationMatrix* myRotation = new G4RotationMatrix();
+    myRotation->rotateX(0.*deg);
+    myRotation->rotateY(-180.*deg);
+    myRotation->rotateZ(0.*rad);
+    
+    
+    G4Transform3D Transform = G4Transform3D(*myRotation, *myVector);
+    
+    fAbsorberPV
     = new G4PVPlacement(Transform,   // no rotation
-                 DetectorLog,       // its logical volume                         
-                 "Abso",           // its name
-                 worldLV,          // its mother  volume
-                 false,            // no boolean operation
-                 0,                // copy number
-                 fCheckOverlaps);  // checking overlaps
+                        DetectorLog,       // its logical volume
+                        "Abso",           // its name
+                        worldLV,          // its mother  volume
+                        false,            // no boolean operation
+                        0,                // copy number
+                        fCheckOverlaps);  // checking overlaps
 
+    //----------------------------
+    //      Correct (without using pointers)
+
+//    Here you will notice that myVector and myRotation are not pointers, but rather G4ThreeVector and G4RotationMatrix objects, respectively.
+//    That is why they can be used directly (without the dereferencing operator *, as in the above case) and you can test that it compiles and runs correctly: G4Transform3D(myRotation, myVector)
+    
+//    G4ThreeVector myVector = G4ThreeVector(r*std::sin(theta)*std::cos(phi), r*std::sin(theta)*std::sin(phi), r*std::cos(theta)); // its position
+//    
+//    G4RotationMatrix myRotation = G4RotationMatrix();
+//    myRotation.rotateX(0.*deg);
+//    myRotation.rotateY(-180.*deg);
+//    myRotation.rotateZ(0.*rad);
+//    
+//    
+//    G4Transform3D transform = G4Transform3D(myRotation, myVector);
+//    
+//    fAbsorberPV
+//    = new G4PVPlacement(transform,   // no rotation
+//                        DetectorLog,       // its logical volume
+//                        "Abso",           // its name
+//                        worldLV,          // its mother  volume
+//                        false,            // no boolean operation
+//                        0,                // copy number
+//                        fCheckOverlaps);  // checking overlaps
+    
+    
+    
 /*                                 
   fAbsorberPV
     = new G4PVPlacement(myRotation,
